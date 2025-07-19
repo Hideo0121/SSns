@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スタッフ一覧 - スタッフ管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f3f7ff;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(90deg, #1565c0 0%, #1976d2 100%);
+            padding: 16px 24px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            width: 32px;
+            height: 32px;
+            background: #fff;
+            border-radius: 50%;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #1976d2;
+            font-size: 18px;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid white;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 16px;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .search-title {
+            color: #1565c0;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: 1fr 200px auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-input, .form-select {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+
+        .btn-secondary {
+            background: #666;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #555;
+        }
+
+        /* Action Section */
+        .action-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 500;
+            margin: 0;
+            color: #333;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        .btn-info {
+            background: #2196f3;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #1976d2;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+
+        .btn-disabled {
+            background: #ccc;
+            color: white;
+            cursor: not-allowed;
+        }
+
+        /* Staff Table */
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .staff-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .staff-table thead {
+            background: #f5f5f5;
+        }
+
+        .staff-table th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 500;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .staff-table th.center {
+            text-align: center;
+        }
+
+        .staff-table td {
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .staff-table td.center {
+            text-align: center;
+        }
+
+        .staff-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .staff-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e3f2fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+            color: #1976d2;
+        }
+
+        .staff-name {
+            font-weight: 500;
+        }
+
+        .role-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .role-admin {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .role-staff {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .action-buttons-cell {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-detail {
+            background: #1976d2;
+        }
+
+        .btn-edit {
+            background: #666;
+        }
+
+        .btn-delete {
+            background: #d32f2f;
+        }
+
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            padding: 24px;
+            gap: 8px;
+        }
+
+        .page-link {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #666;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .page-link:hover {
+            background: #f5f5f5;
+        }
+
+        .page-link.active {
+            background: #1976d2;
+            color: white;
+            border-color: #1976d2;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 15% auto;
+            padding: 32px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .modal-text {
+            margin-bottom: 32px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+            .search-form {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+            .action-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            .action-buttons {
+                flex-wrap: wrap;
+            }
+            .table-container {
+                overflow-x: auto;
+            }
+            .staff-table {
+                min-width: 800px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">S</div>
+            <div class="header-title">スタッフ管理システム</div>
+        </div>
+        <div class="user-info">
+            <span style="margin-right: 8px;">👤</span>
+            山田太郎
+            <button class="logout-btn">ログアウト</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Search Section -->
+        <div class="search-section">
+            <h2 class="search-title">スタッフ検索</h2>
+            <form class="search-form">
+                <div class="form-group">
+                    <label class="form-label">検索キーワード</label>
+                    <input type="text" class="form-input" placeholder="名前、ユーザーコード、メールアドレス">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">権限</label>
+                    <select class="form-select">
+                        <option value="">すべて</option>
+                        <option value="admin">管理者</option>
+                        <option value="staff">一般</option>
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn btn-primary">検索</button>
+                    <button type="button" class="btn btn-secondary">リセット</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Action Section -->
+        <div class="action-section">
+            <h1 class="page-title">スタッフ一覧 (15件)</h1>
+            <div class="action-buttons">
+                <a href="staff-registration-preview.html" class="btn btn-success">➕ 新規登録</a>
+                <a href="board-list-preview.html" class="btn btn-info">📝 掲示板</a>
+                <a href="mail-send-preview.html" class="btn btn-secondary">📋 メール配信管理</a>
+                <button id="mailToSelectedBtn" class="btn btn-disabled" disabled>
+                    ✉️ 選択したスタッフにメール送信 (0)
+                </button>
+            </div>
+        </div>
+
+        <!-- Staff Table -->
+        <div class="table-container">
+            <table class="staff-table">
+                <thead>
+                    <tr>
+                        <th class="center" style="width: 50px;">
+                            <input type="checkbox" id="selectAll" class="checkbox">
+                        </th>
+                        <th>名前</th>
+                        <th>ユーザーコード</th>
+                        <th>メールアドレス</th>
+                        <th>権限</th>
+                        <th class="center">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="center">
+                            <input type="checkbox" class="checkbox staff-checkbox" data-id="1">
+                        </td>
+                        <td>
+                            <div class="staff-info">
+                                <div class="staff-avatar">山</div>
+                                <span class="staff-name">山田太郎</span>
+                            </div>
+                        </td>
+                        <td style="color: #666;">USER001</td>
+                        <td style="color: #666;">yamada@example.com</td>
+                        <td>
+                            <span class="role-badge role-admin">管理者</span>
+                        </td>
+                        <td class="center">
+                            <div class="action-buttons-cell">
+                                <a href="staff-detail-preview.html" class="btn-small btn-detail">詳細</a>
+                                <a href="#" class="btn-small btn-edit">編集</a>
+                                <button class="btn-small btn-delete" onclick="showDeleteModal('山田太郎')">削除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="center">
+                            <input type="checkbox" class="checkbox staff-checkbox" data-id="2">
+                        </td>
+                        <td>
+                            <div class="staff-info">
+                                <div class="staff-avatar">田</div>
+                                <span class="staff-name">田中花子</span>
+                            </div>
+                        </td>
+                        <td style="color: #666;">USER002</td>
+                        <td style="color: #666;">tanaka@example.com</td>
+                        <td>
+                            <span class="role-badge role-staff">一般</span>
+                        </td>
+                        <td class="center">
+                            <div class="action-buttons-cell">
+                                <a href="staff-detail-preview.html" class="btn-small btn-detail">詳細</a>
+                                <a href="#" class="btn-small btn-edit">編集</a>
+                                <button class="btn-small btn-delete" onclick="showDeleteModal('田中花子')">削除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="center">
+                            <input type="checkbox" class="checkbox staff-checkbox" data-id="3">
+                        </td>
+                        <td>
+                            <div class="staff-info">
+                                <div class="staff-avatar">佐</div>
+                                <span class="staff-name">佐藤次郎</span>
+                            </div>
+                        </td>
+                        <td style="color: #666;">USER003</td>
+                        <td style="color: #666;">sato@example.com</td>
+                        <td>
+                            <span class="role-badge role-staff">一般</span>
+                        </td>
+                        <td class="center">
+                            <div class="action-buttons-cell">
+                                <a href="staff-detail-preview.html" class="btn-small btn-detail">詳細</a>
+                                <a href="#" class="btn-small btn-edit">編集</a>
+                                <button class="btn-small btn-delete" onclick="showDeleteModal('佐藤次郎')">削除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="center">
+                            <input type="checkbox" class="checkbox staff-checkbox" data-id="4">
+                        </td>
+                        <td>
+                            <div class="staff-info">
+                                <div class="staff-avatar">鈴</div>
+                                <span class="staff-name">鈴木三郎</span>
+                            </div>
+                        </td>
+                        <td style="color: #666;">USER004</td>
+                        <td style="color: #666;">suzuki@example.com</td>
+                        <td>
+                            <span class="role-badge role-admin">管理者</span>
+                        </td>
+                        <td class="center">
+                            <div class="action-buttons-cell">
+                                <a href="staff-detail-preview.html" class="btn-small btn-detail">詳細</a>
+                                <a href="#" class="btn-small btn-edit">編集</a>
+                                <button class="btn-small btn-delete" onclick="showDeleteModal('鈴木三郎')">削除</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="center">
+                            <input type="checkbox" class="checkbox staff-checkbox" data-id="5">
+                        </td>
+                        <td>
+                            <div class="staff-info">
+                                <div class="staff-avatar">高</div>
+                                <span class="staff-name">高橋四郎</span>
+                            </div>
+                        </td>
+                        <td style="color: #666;">USER005</td>
+                        <td style="color: #666;">takahashi@example.com</td>
+                        <td>
+                            <span class="role-badge role-staff">一般</span>
+                        </td>
+                        <td class="center">
+                            <div class="action-buttons-cell">
+                                <a href="staff-detail-preview.html" class="btn-small btn-detail">詳細</a>
+                                <a href="#" class="btn-small btn-edit">編集</a>
+                                <button class="btn-small btn-delete" onclick="showDeleteModal('高橋四郎')">削除</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <a href="#" class="page-link">前へ</a>
+                <a href="#" class="page-link active">1</a>
+                <a href="#" class="page-link">2</a>
+                <a href="#" class="page-link">3</a>
+                <a href="#" class="page-link">次へ</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">スタッフ削除確認</div>
+            <div class="modal-text" id="deleteMessage">
+                このスタッフを削除してもよろしいですか？<br>
+                この操作は取り消せません。
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="hideDeleteModal()">キャンセル</button>
+                <button class="btn btn-delete" onclick="confirmDelete()">削除</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedStaff = [];
+        let staffToDelete = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMailButton();
+            
+            // Select All functionality
+            document.getElementById('selectAll').addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.staff-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateSelectedStaff();
+            });
+
+            // Individual checkbox functionality
+            document.querySelectorAll('.staff-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', updateSelectedStaff);
+            });
+        });
+
+        function updateSelectedStaff() {
+            const checkboxes = document.querySelectorAll('.staff-checkbox:checked');
+            selectedStaff = Array.from(checkboxes).map(cb => cb.dataset.id);
+            
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const allCheckboxes = document.querySelectorAll('.staff-checkbox');
+            selectAllCheckbox.checked = selectedStaff.length === allCheckboxes.length;
+            
+            updateMailButton();
+        }
+
+        function updateMailButton() {
+            const mailBtn = document.getElementById('mailToSelectedBtn');
+            if (selectedStaff.length > 0) {
+                mailBtn.textContent = `✉️ 選択したスタッフにメール送信 (${selectedStaff.length})`;
+                mailBtn.className = 'btn btn-warning';
+                mailBtn.disabled = false;
+                mailBtn.onclick = () => {
+                    showToast('メール送信画面に移動します', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'mail-send-preview.html';
+                    }, 1500);
+                };
+            } else {
+                mailBtn.textContent = '✉️ 選択したスタッフにメール送信 (0)';
+                mailBtn.className = 'btn btn-disabled';
+                mailBtn.disabled = true;
+                mailBtn.onclick = null;
+            }
+        }
+
+        function showDeleteModal(staffName) {
+            staffToDelete = staffName;
+            document.getElementById('deleteMessage').innerHTML = 
+                `${staffName}さんを削除してよろしいですか？<br>この操作は取り消せません。`;
+            document.getElementById('deleteModal').style.display = 'block';
+        }
+
+        function hideDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            staffToDelete = null;
+        }
+
+        function confirmDelete() {
+            if (staffToDelete) {
+                showToast(`${staffToDelete}さんを削除しました`, 'success');
+                hideDeleteModal();
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.style.background = type === 'success' ? '#4caf50' : '#f44336';
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target == modal) {
+                hideDeleteModal();
+            }
+        }
+
+        console.log('スタッフ一覧ページが読み込まれました');
+    </script>
+</body>
+</html>

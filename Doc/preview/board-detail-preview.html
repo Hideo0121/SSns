@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>掲示板詳細 - スタッフ管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: #f3f7ff;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(90deg, #1565c0 0%, #1976d2 100%);
+            padding: 16px 24px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            width: 32px;
+            height: 32px;
+            background: #fff;
+            border-radius: 50%;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #1976d2;
+            font-size: 20px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            background: transparent;
+            border: 1px solid white;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            margin-right: 16px;
+        }
+
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            background: white;
+            color: #1976d2;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: transparent;
+            color: white;
+            border: 1px solid white;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        /* Navigation Bar */
+        .nav-bar {
+            background: white;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            color: #1976d2;
+            border: 1px solid #1976d2;
+            background: white;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-title {
+            margin: 0;
+            color: #1565c0;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .edit-btn {
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .paper {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .paper-header {
+            padding: 24px 32px 16px;
+            border-bottom: 2px solid #e3f2fd;
+        }
+
+        .paper-content {
+            padding: 32px;
+        }
+
+        /* Thread Content */
+        .thread-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .thread-title {
+            color: #1565c0;
+            font-weight: bold;
+            margin: 0;
+            font-size: 24px;
+            flex: 1;
+        }
+
+        .thread-category {
+            background: #1976d2;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .thread-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .thread-content {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            font-size: 16px;
+        }
+
+        .thread-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .favorite-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .favorite-btn.unfavorited {
+            background: white;
+            color: #1976d2;
+            border: 1px solid #1976d2;
+        }
+
+        .thread-stats {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+        }
+
+        /* Comment Form */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .submit-btn {
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        /* Comments */
+        .comment-list {
+            padding: 0;
+        }
+
+        .comment-item {
+            padding: 16px 0;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+
+        .comment-item:hover {
+            background: #f3f7ff;
+            margin: 0 -16px;
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            background: #1976d2;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .comment-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .comment-author {
+            font-weight: bold;
+        }
+
+        .comment-date {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .comment-menu {
+            position: relative;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .menu-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .comment-text {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            margin-top: 8px;
+        }
+
+        /* Alert */
+        .alert {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .section-title {
+            color: #1565c0;
+            font-weight: bold;
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .icon {
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">S</div>
+            <h1>スタッフ管理システム</h1>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <div class="user-avatar">山</div>
+                山田太郎 (管理者)
+            </div>
+            <a href="#" class="logout-btn">
+                <span>⚡</span>
+                ログアウト
+            </a>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <div class="nav-left">
+            <a href="board-list-preview.html" class="back-btn">
+                <span>←</span>
+                一覧に戻る
+            </a>
+            <h2 class="nav-title">掲示板詳細</h2>
+        </div>
+        <div>
+            <a href="board-edit-preview.html" class="edit-btn">
+                <span>✏️</span>
+                編集
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Success Message -->
+        <div class="alert">
+            コメントが正常に投稿されました。
+        </div>
+
+        <!-- Thread Content -->
+        <div class="paper">
+            <div class="paper-header">
+                <div class="thread-header">
+                    <h1 class="thread-title">新年度の研修スケジュールについて</h1>
+                    <span class="thread-category">お知らせ</span>
+                </div>
+                <div class="thread-meta">
+                    <div class="meta-item">
+                        <span class="icon">👤</span>
+                        <span>田中一郎</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="icon">📅</span>
+                        <span>2025年1月15日 14:30</span>
+                    </div>
+                </div>
+            </div>
+            <div class="paper-content">
+                <div class="thread-content">
+皆さま、お疲れ様です。
+
+新年度の研修スケジュールが決定しましたので、お知らせいたします。
+
+【研修概要】
+・期間：4月1日〜4月30日
+・対象：新入社員および希望者
+・内容：基礎研修、専門研修、グループワーク
+
+【スケジュール詳細】
+4月1日(月)：オリエンテーション
+4月2日〜4月5日：基礎研修
+4月8日〜4月19日：専門研修
+4月22日〜4月26日：実習
+4月29日〜4月30日：総合評価
+
+詳細については後日配布される資料をご確認ください。
+ご質問がございましたら、お気軽にお声かけください。
+
+よろしくお願いいたします。</div>
+                <div class="thread-actions">
+                    <button class="favorite-btn" onclick="toggleFavorite()">
+                        <span>❤️</span>
+                        お気に入り (5)
+                    </button>
+                    <div class="thread-stats">
+                        <span class="icon">💬</span>
+                        <span>12 コメント</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comment Form -->
+        <div class="paper">
+            <div class="paper-header">
+                <h3 class="section-title">コメントを投稿</h3>
+            </div>
+            <div class="paper-content">
+                <form>
+                    <div class="form-group">
+                        <label class="form-label">コメント内容</label>
+                        <textarea class="form-textarea" placeholder="コメントを入力してください..." required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">
+                        <span>📨</span>
+                        コメント投稿
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Comments List -->
+        <div class="paper">
+            <div class="paper-header">
+                <h3 class="section-title">コメント (12)</h3>
+            </div>
+            <div class="paper-content">
+                <div class="comment-list">
+                    <!-- Comment 1 -->
+                    <div class="comment-item">
+                        <div class="comment-avatar">佐</div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <div class="comment-info">
+                                    <span class="comment-author">佐藤花子</span>
+                                    <span class="comment-date">2025年1月15日 15:20</span>
+                                </div>
+                                <div class="comment-menu">
+                                    <button class="menu-btn">⋮</button>
+                                </div>
+                            </div>
+                            <div class="comment-text">研修資料の事前配布はいつ頃の予定でしょうか？
+準備しておきたいことがあれば教えてください。</div>
+                        </div>
+                    </div>
+
+                    <!-- Comment 2 -->
+                    <div class="comment-item">
+                        <div class="comment-avatar">田</div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <div class="comment-info">
+                                    <span class="comment-author">田中一郎</span>
+                                    <span class="comment-date">2025年1月15日 16:45</span>
+                                </div>
+                                <div class="comment-menu">
+                                    <button class="menu-btn">⋮</button>
+                                </div>
+                            </div>
+                            <div class="comment-text">佐藤さん、ご質問ありがとうございます。
+研修資料は3月25日頃に配布予定です。
+事前準備については後日詳細をお送りします。</div>
+                        </div>
+                    </div>
+
+                    <!-- Comment 3 -->
+                    <div class="comment-item">
+                        <div class="comment-avatar">鈴</div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <div class="comment-info">
+                                    <span class="comment-author">鈴木次郎</span>
+                                    <span class="comment-date">2025年1月15日 17:10</span>
+                                </div>
+                                <div class="comment-menu">
+                                    <button class="menu-btn">⋮</button>
+                                </div>
+                            </div>
+                            <div class="comment-text">研修期間中の勤務時間はどのようになりますか？
+通常勤務との違いがあれば教えてください。</div>
+                        </div>
+                    </div>
+
+                    <!-- Comment 4 -->
+                    <div class="comment-item">
+                        <div class="comment-avatar">高</div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <div class="comment-info">
+                                    <span class="comment-author">高橋三郎</span>
+                                    <span class="comment-date">2025年1月16日 9:30</span>
+                                </div>
+                                <div class="comment-menu">
+                                    <button class="menu-btn">⋮</button>
+                                </div>
+                            </div>
+                            <div class="comment-text">グループワークのメンバー構成はどのように決定されるのでしょうか？
+希望を出すことは可能ですか？</div>
+                        </div>
+                    </div>
+
+                    <!-- Comment 5 -->
+                    <div class="comment-item">
+                        <div class="comment-avatar">渡</div>
+                        <div class="comment-content">
+                            <div class="comment-header">
+                                <div class="comment-info">
+                                    <span class="comment-author">渡辺四郎</span>
+                                    <span class="comment-date">2025年1月16日 11:15</span>
+                                </div>
+                                <div class="comment-menu">
+                                    <button class="menu-btn">⋮</button>
+                                </div>
+                            </div>
+                            <div class="comment-text">実習先の企業はもう決まっているのでしょうか？
+業界や職種の希望があるので、早めに相談したいです。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleFavorite() {
+            const btn = document.querySelector('.favorite-btn');
+            const isFavorited = btn.classList.contains('unfavorited');
+            
+            if (isFavorited) {
+                btn.classList.remove('unfavorited');
+                btn.innerHTML = '<span>❤️</span>お気に入り (6)';
+                btn.style.background = '#f44336';
+                btn.style.color = 'white';
+                btn.style.border = 'none';
+            } else {
+                btn.classList.add('unfavorited');
+                btn.innerHTML = '<span>🤍</span>お気に入り (5)';
+                btn.style.background = 'white';
+                btn.style.color = '#1976d2';
+                btn.style.border = '1px solid #1976d2';
+            }
+        }
+
+        console.log('掲示板詳細ページが読み込まれました');
+    </script>
+</body>
+</html>

@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>トピック編集 - スタッフ管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: #f3f7ff;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(90deg, #1565c0 0%, #1976d2 100%);
+            padding: 16px 24px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            width: 32px;
+            height: 32px;
+            background: #fff;
+            border-radius: 50%;
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #1976d2;
+            font-size: 20px;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-info {
+            background: transparent;
+            border: 1px solid white;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            margin-right: 16px;
+        }
+
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            background: white;
+            color: #1976d2;
+            border-radius: 50%;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background: transparent;
+            color: white;
+            border: 1px solid white;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        /* Navigation Bar */
+        .nav-bar {
+            background: white;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            color: #1976d2;
+            border: 1px solid #1976d2;
+            background: white;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-title {
+            margin: 0;
+            color: #1565c0;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .delete-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .paper {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .paper-header {
+            padding: 24px 32px 16px;
+            border-bottom: 2px solid #e3f2fd;
+        }
+
+        .paper-content {
+            padding: 32px;
+        }
+
+        .section-title {
+            color: #1565c0;
+            font-weight: bold;
+            margin: 0;
+            font-size: 18px;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #f44336;
+            margin-left: 4px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 200px;
+        }
+
+        .form-error {
+            color: #f44336;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        /* Category Section */
+        .category-section {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 16px;
+            background: #f9f9f9;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .category-title {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .new-category-toggle {
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .new-category-section {
+            display: none;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .new-category-section.show {
+            display: block;
+        }
+
+        /* Button Styles */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 32px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #eeeeee;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        /* Character Counter */
+        .char-counter {
+            text-align: right;
+            color: #666;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .char-counter.warning {
+            color: #ff9800;
+        }
+
+        .char-counter.error {
+            color: #f44336;
+        }
+
+        /* Help Text */
+        .help-text {
+            color: #666;
+            font-size: 12px;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        /* Edit Info */
+        .edit-info {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .edit-info-title {
+            font-weight: 500;
+            color: #1565c0;
+            margin-bottom: 8px;
+        }
+
+        .edit-info-content {
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* Modal for delete confirmation */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 15% auto;
+            padding: 24px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .modal-text {
+            margin-bottom: 24px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="logo">S</div>
+            <h1>スタッフ管理システム</h1>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <div class="user-avatar">田</div>
+                田中一郎 (管理者)
+            </div>
+            <a href="#" class="logout-btn">
+                <span>⚡</span>
+                ログアウト
+            </a>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <div class="nav-left">
+            <a href="board-detail-preview.html" class="back-btn">
+                <span>←</span>
+                詳細に戻る
+            </a>
+            <h2 class="nav-title">トピック編集</h2>
+        </div>
+        <div>
+            <button class="delete-btn" onclick="showDeleteModal()">
+                <span>🗑️</span>
+                削除
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Edit Info -->
+        <div class="edit-info">
+            <div class="edit-info-title">編集中のトピック情報</div>
+            <div class="edit-info-content">
+                作成日時: 2025年1月15日 14:30<br>
+                最終更新: 2025年1月16日 9:15<br>
+                作成者: 田中一郎
+            </div>
+        </div>
+
+        <div class="paper">
+            <div class="paper-header">
+                <h3 class="section-title">トピックを編集</h3>
+            </div>
+            <div class="paper-content">
+                <form id="editForm">
+                    <!-- Title -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            タイトル
+                            <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            id="title"
+                            name="title"
+                            value="新年度の研修スケジュールについて"
+                            maxlength="100"
+                            required
+                        >
+                        <div class="char-counter" id="titleCounter">18/100</div>
+                        <div class="form-error" id="titleError"></div>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            カテゴリ
+                            <span class="required">*</span>
+                        </label>
+                        <div class="category-section">
+                            <div class="category-header">
+                                <span class="category-title">既存カテゴリから選択</span>
+                                <button type="button" class="new-category-toggle" onclick="toggleNewCategory()">
+                                    新規作成
+                                </button>
+                            </div>
+                            <select class="form-select" id="category" name="category_id" required>
+                                <option value="">カテゴリを選択してください</option>
+                                <option value="1" selected>お知らせ</option>
+                                <option value="2">質問・相談</option>
+                                <option value="3">雑談</option>
+                                <option value="4">技術情報</option>
+                                <option value="5">その他</option>
+                            </select>
+                            
+                            <div class="new-category-section" id="newCategorySection">
+                                <label class="form-label">新しいカテゴリ名</label>
+                                <input 
+                                    type="text" 
+                                    class="form-input" 
+                                    id="newCategory"
+                                    name="new_category"
+                                    placeholder="新しいカテゴリ名を入力してください..."
+                                    maxlength="50"
+                                >
+                                <div class="char-counter" id="categoryCounter">0/50</div>
+                                <div class="help-text">
+                                    新しいカテゴリを作成する場合は、上記の既存カテゴリ選択を解除してください。
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-error" id="categoryError"></div>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            内容
+                            <span class="required">*</span>
+                        </label>
+                        <textarea 
+                            class="form-textarea" 
+                            id="content"
+                            name="content"
+                            maxlength="5000"
+                            required
+                        >皆さま、お疲れ様です。
+
+新年度の研修スケジュールが決定しましたので、お知らせいたします。
+
+【研修概要】
+・期間：4月1日〜4月30日
+・対象：新入社員および希望者
+・内容：基礎研修、専門研修、グループワーク
+
+【スケジュール詳細】
+4月1日(月)：オリエンテーション
+4月2日〜4月5日：基礎研修
+4月8日〜4月19日：専門研修
+4月22日〜4月26日：実習
+4月29日〜4月30日：総合評価
+
+詳細については後日配布される資料をご確認ください。
+ご質問がございましたら、お気軽にお声かけください。
+
+よろしくお願いいたします。</textarea>
+                        <div class="char-counter" id="contentCounter">433/5000</div>
+                        <div class="help-text">
+                            改行や段落分けを使って、読みやすい内容を心がけてください。<br>
+                            画像や添付ファイルは現在サポートされていません。
+                        </div>
+                        <div class="form-error" id="contentError"></div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="btn-group">
+                        <a href="board-detail-preview.html" class="btn btn-secondary">
+                            キャンセル
+                        </a>
+                        <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                            <span>💾</span>
+                            下書き保存
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <span>✅</span>
+                            更新する
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">トピック削除確認</div>
+            <div class="modal-text">
+                このトピックを削除してもよろしいですか？<br>
+                関連するコメントもすべて削除されます。<br>
+                この操作は元に戻せません。
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="hideDeleteModal()">
+                    キャンセル
+                </button>
+                <button class="btn btn-danger" onclick="deleteThread()">
+                    <span>🗑️</span>
+                    削除する
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Character counters
+        function setupCharCounter(inputId, counterId, maxLength) {
+            const input = document.getElementById(inputId);
+            const counter = document.getElementById(counterId);
+            
+            // Initial count
+            const initialLength = input.value.length;
+            counter.textContent = `${initialLength}/${maxLength}`;
+            
+            input.addEventListener('input', function() {
+                const length = this.value.length;
+                counter.textContent = `${length}/${maxLength}`;
+                
+                counter.classList.remove('warning', 'error');
+                if (length > maxLength * 0.9) {
+                    counter.classList.add('warning');
+                }
+                if (length >= maxLength) {
+                    counter.classList.add('error');
+                }
+            });
+        }
+
+        setupCharCounter('title', 'titleCounter', 100);
+        setupCharCounter('newCategory', 'categoryCounter', 50);
+        setupCharCounter('content', 'contentCounter', 5000);
+
+        // Toggle new category section
+        function toggleNewCategory() {
+            const section = document.getElementById('newCategorySection');
+            const button = document.querySelector('.new-category-toggle');
+            const categorySelect = document.getElementById('category');
+            
+            if (section.classList.contains('show')) {
+                section.classList.remove('show');
+                button.textContent = '新規作成';
+                categorySelect.required = true;
+                document.getElementById('newCategory').required = false;
+            } else {
+                section.classList.add('show');
+                button.textContent = '既存選択';
+                categorySelect.required = false;
+                categorySelect.value = '';
+                document.getElementById('newCategory').required = true;
+            }
+        }
+
+        // Form validation
+        function validateForm() {
+            let isValid = true;
+            const errors = {};
+
+            // Title validation
+            const title = document.getElementById('title').value.trim();
+            if (!title) {
+                errors.title = 'タイトルは必須です。';
+                isValid = false;
+            } else if (title.length > 100) {
+                errors.title = 'タイトルは100文字以内で入力してください。';
+                isValid = false;
+            }
+
+            // Category validation
+            const category = document.getElementById('category').value;
+            const newCategory = document.getElementById('newCategory').value.trim();
+            if (!category && !newCategory) {
+                errors.category = 'カテゴリを選択するか、新しいカテゴリを入力してください。';
+                isValid = false;
+            }
+
+            // Content validation
+            const content = document.getElementById('content').value.trim();
+            if (!content) {
+                errors.content = '内容は必須です。';
+                isValid = false;
+            } else if (content.length > 5000) {
+                errors.content = '内容は5000文字以内で入力してください。';
+                isValid = false;
+            }
+
+            // Display errors
+            Object.keys(errors).forEach(field => {
+                const errorElement = document.getElementById(field + 'Error');
+                if (errorElement) {
+                    errorElement.textContent = errors[field];
+                }
+            });
+
+            // Clear errors for valid fields
+            ['title', 'category', 'content'].forEach(field => {
+                if (!errors[field]) {
+                    const errorElement = document.getElementById(field + 'Error');
+                    if (errorElement) {
+                        errorElement.textContent = '';
+                    }
+                }
+            });
+
+            return isValid;
+        }
+
+        // Form submission
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (validateForm()) {
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>⏳</span>更新中...';
+                
+                // Simulate API call
+                setTimeout(() => {
+                    alert('トピックが更新されました！');
+                    window.location.href = 'board-detail-preview.html';
+                }, 1500);
+            }
+        });
+
+        // Save draft function
+        function saveDraft() {
+            const title = document.getElementById('title').value.trim();
+            const content = document.getElementById('content').value.trim();
+            
+            if (!title && !content) {
+                alert('保存する内容がありません。');
+                return;
+            }
+            
+            // Simulate saving to localStorage or server
+            const draft = {
+                title: title,
+                content: content,
+                category: document.getElementById('category').value,
+                newCategory: document.getElementById('newCategory').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('boardEditDraft', JSON.stringify(draft));
+            alert('下書きが保存されました。');
+        }
+
+        // Delete modal functions
+        function showDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'block';
+        }
+
+        function hideDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        function deleteThread() {
+            // Simulate deletion
+            alert('トピックが削除されました。');
+            window.location.href = 'board-list-preview.html';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target == modal) {
+                hideDeleteModal();
+            }
+        }
+
+        console.log('トピック編集ページが読み込まれました');
+    </script>
+</body>
+</html>
