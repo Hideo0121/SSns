@@ -29,21 +29,42 @@ export default function Edit({ staff }) {
     const { auth } = usePage().props;
     const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
     
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, transform } = useForm({
         user_code: staff.user_code || '',
         name: staff.name || '',
         email: staff.email || '',
         password: '',
         password_confirmation: '',
-        role: staff.role || '一般',
+        role: staff.role || 'スタッフ',
         phone_number: staff.phone_number || '',
         mobile_phone_number: staff.mobile_phone_number || '',
         profile_image: null,
     });
 
+    // 一時的にtransformを無効化してテスト
+    // transform((data) => {
+    //     const transformedData = {
+    //         ...data,
+    //         _method: 'PUT',
+    //     };
+        
+    //     // profile_imageがnullまたは空の場合は除外
+    //     if (!data.profile_image) {
+    //         delete transformedData.profile_image;
+    //     }
+        
+    //     return transformedData;
+    // });
+
+    transform((data) => ({
+        ...data,
+        _method: 'PUT',
+    }));
+
     const submit = (e) => {
         e.preventDefault();
-        put(route('staff.update', staff.id), {
+        post(route('staff.update', staff.id), {
+            forceFormData: true,
             onSuccess: () => {
                 setToast({
                     open: true,
@@ -258,10 +279,10 @@ export default function Edit({ staff }) {
                                         <div style={{
                                             width: '120px',
                                             height: '120px',
-                                            border: (data.profile_image || staff.profile_image) ? '4px solid #1976d2' : '4px dashed #1976d2',
+                                            border: (data.profile_image || staff.avatar_photo) ? '4px solid #1976d2' : '4px dashed #1976d2',
                                             borderRadius: '50%',
                                             background: data.profile_image ? `url(${URL.createObjectURL(data.profile_image)}) center/cover` : 
-                                                       staff.profile_image ? `url(${staff.profile_image}) center/cover` : '#f3f7ff',
+                                                       staff.avatar_photo ? `url(/avatars/${staff.avatar_photo.split('/').pop()}) center/cover` : '#f3f7ff',
                                             color: '#1976d2',
                                             display: 'flex',
                                             alignItems: 'center',
@@ -271,8 +292,9 @@ export default function Edit({ staff }) {
                                             position: 'relative',
                                             overflow: 'hidden'
                                         }}>
-                                            {!(data.profile_image || staff.profile_image) && <PersonIcon sx={{ fontSize: '32px' }} />}
+                                            {!(data.profile_image || staff.avatar_photo) && <PersonIcon sx={{ fontSize: '32px' }} />}
                                         </div>
+                                        
                                         <Button
                                             component="label"
                                             variant="outlined"
@@ -464,7 +486,7 @@ export default function Edit({ staff }) {
                                             />
                                         </Box>
 
-                                        {/* 役職 */}
+                                        {/* 権限 */}
                                         <Box sx={{ position: 'relative' }}>
                                             <Typography 
                                                 variant="subtitle2" 
@@ -476,7 +498,7 @@ export default function Edit({ staff }) {
                                                     mb: 1
                                                 }}
                                             >
-                                                役職<span style={{ color: '#d32f2f', marginLeft: '4px' }}>*</span>
+                                                権限<span style={{ color: '#d32f2f', marginLeft: '4px' }}>*</span>
                                             </Typography>
                                             <WorkIcon sx={{ 
                                                 position: 'absolute',
@@ -498,10 +520,10 @@ export default function Edit({ staff }) {
                                                         }
                                                     }}
                                                 >
-                                                    <MenuItem value="" disabled>役職を選択してください</MenuItem>
+                                                    <MenuItem value="" disabled>権限を選択してください</MenuItem>
                                                     <MenuItem value="全権管理者">🔴 全権管理者</MenuItem>
                                                     <MenuItem value="一般管理者">🟡 一般管理者</MenuItem>
-                                                    <MenuItem value="一般">🔵 一般</MenuItem>
+                                                    <MenuItem value="スタッフ">🔵 スタッフ</MenuItem>
                                                 </Select>
                                                 {errors.role && (
                                                     <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: '48px' }}>

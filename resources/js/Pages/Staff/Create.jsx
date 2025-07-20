@@ -34,7 +34,7 @@ export default function Create() {
         email: '',
         password: '',
         password_confirmation: '',
-        role: '一般',
+        role: 'スタッフ',
         phone_number: '',
         mobile_phone_number: '',
         profile_image: null,
@@ -445,7 +445,7 @@ export default function Create() {
                                                 value={data.email}
                                                 onChange={(e) => setData('email', e.target.value)}
                                                 error={!!errors.email}
-                                                helperText={errors.email || 'ログインID兼用'}
+                                                helperText={errors.email || '最大255文字'}
                                                 fullWidth
                                                 required
                                                 placeholder="taro.yamada@example.com"
@@ -509,7 +509,7 @@ export default function Create() {
                                             />
                                         </Box>
 
-                                        {/* 役職 */}
+                                        {/* 権限 */}
                                         <Box sx={{ position: 'relative' }}>
                                             <Typography 
                                                 variant="subtitle2" 
@@ -521,7 +521,7 @@ export default function Create() {
                                                     mb: 1
                                                 }}
                                             >
-                                                役職<span style={{ color: '#d32f2f', marginLeft: '4px' }}>*</span>
+                                                権限<span style={{ color: '#d32f2f', marginLeft: '4px' }}>*</span>
                                             </Typography>
                                             <WorkIcon sx={{ 
                                                 position: 'absolute',
@@ -543,10 +543,10 @@ export default function Create() {
                                                         }
                                                     }}
                                                 >
-                                                    <MenuItem value="" disabled>役職を選択してください</MenuItem>
+                                                    <MenuItem value="" disabled>権限を選択してください</MenuItem>
                                                     <MenuItem value="全権管理者">🔴 全権管理者</MenuItem>
                                                     <MenuItem value="一般管理者">🟡 一般管理者</MenuItem>
-                                                    <MenuItem value="一般">🔵 一般</MenuItem>
+                                                    <MenuItem value="スタッフ">🔵 スタッフ</MenuItem>
                                                 </Select>
                                                 {errors.role && (
                                                     <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: '48px' }}>

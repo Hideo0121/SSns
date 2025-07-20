@@ -11,6 +11,7 @@ export default function Index({ staff, filters }) {
     const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
     const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', message: '', onConfirm: null });
     const [selectedStaff, setSelectedStaff] = useState([]);
+    
     const getRoleColor = (role) => {
         switch (role) {
             case '全権管理者':
@@ -258,6 +259,24 @@ export default function Index({ staff, filters }) {
                             >
                                 📝 掲示板
                             </Link>
+                            {auth.user && (auth.user.role === '全権管理者' || auth.user.role === '一般管理者') && (
+                                <Link
+                                    href="/audit-logs"
+                                    style={{
+                                        background: '#673ab7',
+                                        color: 'white',
+                                        padding: '12px 24px',
+                                        borderRadius: '4px',
+                                        textDecoration: 'none',
+                                        fontSize: '14px',
+                                        fontWeight: '500',
+                                        display: 'flex',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    📊 監査ログ
+                                </Link>
+                            )}
                             <button
                                 onClick={handleMailToSelected}
                                 disabled={selectedStaff.length === 0}
@@ -321,15 +340,48 @@ export default function Index({ staff, filters }) {
                                                     width: '40px',
                                                     height: '40px',
                                                     borderRadius: '50%',
-                                                    background: '#e3f2fd',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
                                                     marginRight: '12px',
                                                     fontWeight: 'bold',
-                                                    color: '#1976d2'
-                                                }}>
-                                                    {member.name.charAt(0)}
+                                                    color: '#1976d2',
+                                                    border: '2px solid #e0e0e0',
+                                                    overflow: 'hidden',
+                                                    background: '#e3f2fd'
+                                                }}
+                                                title={member.avatar_photo ? `/storage/${member.avatar_photo}` : 'アバター画像なし'}
+                                                >
+                                                    {member.avatar_photo ? (
+                                                        <img 
+                                                            src={member.avatar_photo.startsWith('avatars/') 
+                                                                ? `/storage/${member.avatar_photo}`
+                                                                : `/storage/avatars/${member.avatar_photo}`}
+                                                            alt={`${member.name}のアバター`}
+                                                            style={{
+                                                                width: '100%',
+                                                                height: '100%',
+                                                                objectFit: 'cover',
+                                                                display: 'block'
+                                                            }}
+                                                            onError={(e) => {
+                                                                e.target.style.display = 'none';
+                                                                e.target.nextSibling.style.display = 'flex';
+                                                            }}
+                                                        />
+                                                    ) : null}
+                                                    <div style={{
+                                                        display: member.avatar_photo ? 'none' : 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        fontSize: '16px',
+                                                        fontWeight: 'bold',
+                                                        color: '#1976d2'
+                                                    }}>
+                                                        {member.name.charAt(0)}
+                                                    </div>
                                                 </div>
                                                 <span style={{ fontWeight: '500' }}>{member.name}</span>
                                             </div>

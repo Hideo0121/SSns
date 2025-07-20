@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Auditable;
 
 class Comment extends Model
 {
+    use Auditable;
     protected $fillable = [
         'thread_id',
         'user_id',

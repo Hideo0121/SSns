@@ -2,16 +2,37 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use App\Traits\Auditable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable, Auditable;
+
+    /**
+     * Get the auditable attributes (exclude sensitive data)
+     */
+    public function getAuditableAttributes(): array
+    {
+        return [
+            'user_code',
+            'name',
+            'email',
+            'role',
+            'phone_number',
+            'mobile_phone_number',
+            'avatar_photo',
+        ];
+    }
+
+    /**
+     * The primary key associated with the table.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'id';
 
     /**
      * The attributes that are mass assignable.
@@ -37,6 +58,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'auditableOriginalValues',
     ];
 
     /**
@@ -50,6 +72,30 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Set the avatar_photo attribute, filtering out invalid values.
+     */
+    public function setAvatarPhotoAttribute($value)
+    {
+        \Log::info('setAvatarPhotoAttribute called with:', [
+            'value' => $value,
+            'type' => gettype($value),
+            'empty' => empty($value),
+            'is_zero_string' => $value === '0',
+            'is_zero_int' => $value === 0,
+            'is_false' => $value === false
+        ]);
+        
+        // 無効な値（0, '0', '', false など）はnullに変換
+        if (empty($value) || $value === '0' || $value === 0 || $value === false) {
+            \Log::info('Converting invalid value to null');
+            $this->attributes['avatar_photo'] = null;
+        } else {
+            \Log::info('Setting valid value:', [$value]);
+            $this->attributes['avatar_photo'] = $value;
+        }
     }
 
     public function sentMessages()
@@ -106,4 +152,5 @@ class User extends Authenticatable
     {
         return $this->where('user_code', $username)->first();
     }
+
 }

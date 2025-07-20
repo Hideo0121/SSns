@@ -11,11 +11,13 @@ class EmailBroadcastMessage extends Model
         'subject',
         'body',
         'sent_at',
-        'status'
+        'status',
+        'attachment_info'
     ];
 
     protected $casts = [
-        'sent_at' => 'datetime'
+        'sent_at' => 'datetime',
+        'attachment_info' => 'array'
     ];
 
     public function admin()

@@ -212,7 +212,10 @@ export default function Login({ status, canResetPassword }) {
                                     cursor: 'pointer',
                                     transition: 'all 0.3s',
                                     textAlign: 'center',
-                                    marginBottom: '16px'
+                                    marginBottom: '16px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
                                 }}
                                 disabled={processing}
                             >

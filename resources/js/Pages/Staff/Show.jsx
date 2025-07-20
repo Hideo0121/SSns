@@ -77,7 +77,7 @@ export default function Show({ staff }) {
             operatorName: '管理者',
             action: '権限変更',
             actionType: 'warning',
-            description: `役職を「一般」から「${staff.role}」に変更`
+            description: `権限を「一般」から「${staff.role}」に変更`
         },
         {
             id: 4,
@@ -301,18 +301,6 @@ export default function Show({ staff }) {
                                     }}>
                                         {!staff.profile_image && (staff.name ? staff.name.charAt(0) : '👤')}
                                     </div>
-                                    <Button
-                                        variant="outlined"
-                                        size="small"
-                                        sx={{
-                                            fontSize: '12px',
-                                            textTransform: 'none',
-                                            color: '#1976d2',
-                                            borderColor: '#1976d2'
-                                        }}
-                                    >
-                                        📷 写真変更
-                                    </Button>
                                 </div>
 
                                 {/* 基本情報グリッド */}
@@ -378,7 +366,7 @@ export default function Show({ staff }) {
                                         </div>
                                     </div>
 
-                                    {/* 役職 */}
+                                    {/* 権限 */}
                                     <div style={{ marginBottom: '16px' }}>
                                         <div style={{
                                             color: '#666',
@@ -387,7 +375,7 @@ export default function Show({ staff }) {
                                             marginBottom: '4px',
                                             textTransform: 'uppercase'
                                         }}>
-                                            役職
+                                            権限
                                         </div>
                                         <div style={{
                                             fontSize: '16px',

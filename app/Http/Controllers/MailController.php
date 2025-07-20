@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\MailService;
+use App\Services\AuditLogService;
 use App\Models\EmailBroadcastMessage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -10,10 +11,12 @@ use Inertia\Inertia;
 class MailController extends Controller
 {
     protected $mailService;
+    protected $auditLogService;
 
-    public function __construct(MailService $mailService)
+    public function __construct(MailService $mailService, AuditLogService $auditLogService)
     {
         $this->mailService = $mailService;
+        $this->auditLogService = $auditLogService;
     }
 
     /**
@@ -35,32 +38,24 @@ class MailController extends Controller
      */
     public function create(Request $request)
     {
-        try {
-            $filters = $request->only(['role', 'search']);
-            $availableUsers = $this->mailService->getAvailableUsers($filters);
-            
-            // 選択されたスタッフIDsを取得
-            $staffIds = [];
-            if ($request->has('staff_ids')) {
-                $staffIds = explode(',', $request->get('staff_ids'));
-                $staffIds = array_filter($staffIds); // 空の値を除去
+        $this->auditLogService->logAction('メール作成画面表示', 'メール作成画面にアクセス');
+        
+        // 利用可能なユーザー一覧を取得
+        $availableUsers = $this->mailService->getAvailableUsers();
+        
+        // URLパラメータから事前選択されたスタッフIDを取得
+        $selectedStaffIds = [];
+        if ($request->has('staff_ids')) {
+            $staffIds = $request->get('staff_ids');
+            if ($staffIds) {
+                $selectedStaffIds = array_map('intval', explode(',', $staffIds));
             }
-
-            return Inertia::render('Mail/Create', [
-                'availableUsers' => $availableUsers,
-                'filters' => $filters,
-                'selectedStaffIds' => $staffIds
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Mail create error: ' . $e->getMessage());
-            
-            return Inertia::render('Mail/Create', [
-                'availableUsers' => [],
-                'filters' => [],
-                'selectedStaffIds' => [],
-                'error' => 'メール作成画面の読み込みに失敗しました。'
-            ]);
         }
+        
+        return Inertia::render('Mail/Create', [
+            'availableUsers' => $availableUsers,
+            'selectedStaffIds' => $selectedStaffIds
+        ]);
     }
 
     /**
@@ -68,16 +63,27 @@ class MailController extends Controller
      */
     public function store(Request $request)
     {
+        // デバッグ: 現在の認証情報をログ出力
+        \Log::info('メール送信リクエスト開始', [
+            'auth_check' => auth()->check(),
+            'auth_user_id' => auth()->user()?->id,
+            'auth_user_code' => auth()->user()?->user_code,
+            'auth_user_name' => auth()->user()?->name,
+        ]);
+
         $validated = $request->validate([
             'subject' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
             'target_users' => ['required', 'array', 'min:1'],
-            'target_users.*' => ['required', 'integer', 'exists:users,id']
+            'target_users.*' => ['required', 'integer', 'exists:users,id'],
+            'attachments' => ['nullable', 'array'],
+            'attachments.*' => ['file', 'max:10240', 'mimes:pdf,jpg,jpeg,png,gif'] // 10MB制限
         ]);
 
         $result = $this->mailService->sendBroadcastMail(
             $validated,
-            $validated['target_users']
+            $validated['target_users'],
+            $request->file('attachments', [])
         );
 
         if ($result['success']) {
@@ -97,10 +103,17 @@ class MailController extends Controller
      */
     public function show(EmailBroadcastMessage $mail)
     {
+        $this->auditLogService->logAction(
+            'メール送信結果画面表示', 
+            "メール送信結果を表示: {$mail->subject}",
+            $mail
+        );
+        
+        // 関連データを含めて取得
         $mail->load(['admin', 'targets.user']);
-
+        
         return Inertia::render('Mail/Show', [
-            'mail' => $mail
+            'broadcastMessage' => $mail,
         ]);
     }
 

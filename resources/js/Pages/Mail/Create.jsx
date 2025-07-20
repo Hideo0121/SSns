@@ -111,31 +111,75 @@ export default function Create({ availableUsers, filters, selectedStaffIds = [],
     const handleSubmit = (e) => {
         e.preventDefault();
         
+        // バリデーション
+        if (!data.subject.trim()) {
+            setToast({
+                open: true,
+                message: '件名を入力してください',
+                severity: 'error'
+            });
+            return;
+        }
+        
+        if (!data.body.trim()) {
+            setToast({
+                open: true,
+                message: 'メール本文を入力してください',
+                severity: 'error'
+            });
+            return;
+        }
+        
+        if (selectedUsers.length === 0) {
+            setToast({
+                open: true,
+                message: '送信対象を選択してください',
+                severity: 'error'
+            });
+            return;
+        }
+        
         setConfirmDialog({
             open: true,
             title: 'メール送信確認',
             message: `メールを送信しますか？\n\n送信対象: ${selectedUsers.length}名\n件名: ${data.subject || '（件名なし）'}\n${attachedFiles.length > 0 ? `添付ファイル: ${attachedFiles.length}件` : ''}`,
             onConfirm: () => {
-                // post(route('mail.store'), {
-                //     onSuccess: () => {
-                //         setToast({
-                //             open: true,
-                //             message: 'メールを送信しました',
-                //             severity: 'success'
-                //         });
-                //     },
-                //     onError: (errors) => {
-                //         setToast({
-                //             open: true,
-                //             message: 'メール送信に失敗しました',
-                //             severity: 'error'
-                //         });
-                //     }
-                // });
-                setToast({
-                    open: true,
-                    message: 'メール送信機能は実装予定です',
-                    severity: 'info'
+                // target_usersをselectedUsersのIDで更新
+                const targetUserIds = selectedUsers.map(user => user.id);
+                
+                // FormDataを使用してファイルアップロードを含む送信
+                const formData = new FormData();
+                formData.append('subject', data.subject);
+                formData.append('body', data.body);
+                targetUserIds.forEach((id, index) => {
+                    formData.append(`target_users[${index}]`, id);
+                });
+                
+                // 添付ファイルを追加
+                data.attachments.forEach((file, index) => {
+                    formData.append(`attachments[${index}]`, file);
+                });
+                
+                post(route('mail.store'), {
+                    data: formData,
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                    onSuccess: () => {
+                        setToast({
+                            open: true,
+                            message: 'メールを送信しました',
+                            severity: 'success'
+                        });
+                    },
+                    onError: (errors) => {
+                        console.error('Mail send errors:', errors);
+                        setToast({
+                            open: true,
+                            message: 'メール送信に失敗しました',
+                            severity: 'error'
+                        });
+                    }
                 });
                 setConfirmDialog({ ...confirmDialog, open: false });
             }
@@ -152,6 +196,11 @@ export default function Create({ availableUsers, filters, selectedStaffIds = [],
 
     const handleFileUpload = (event) => {
         const files = Array.from(event.target.files);
+        processFiles(files);
+        event.target.value = '';
+    };
+
+    const processFiles = (files) => {
         const maxSize = 10 * 1024 * 1024; // 10MB
         const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
 
@@ -192,19 +241,55 @@ export default function Create({ availableUsers, filters, selectedStaffIds = [],
             };
 
             setAttachedFiles(prev => [...prev, fileInfo]);
+            
+            // フォームデータにも追加（既存のデータを保持）
+            setData(prev => ({
+                ...prev,
+                attachments: [...prev.attachments, file]
+            }));
+            
             setToast({
                 open: true,
                 message: `${file.name} を添付しました`,
                 severity: 'success'
             });
         });
+    };
 
-        event.target.value = '';
+    // ドラッグ&ドロップ処理
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDragEnter = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const files = Array.from(e.dataTransfer.files);
+        processFiles(files);
     };
 
     const removeFile = (index) => {
         const fileName = attachedFiles[index].name;
         setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+        
+        // フォームデータからも削除（既存のデータを保持）
+        setData(prev => ({
+            ...prev,
+            attachments: prev.attachments.filter((_, i) => i !== index)
+        }));
+        
         setToast({
             open: true,
             message: `${fileName} を削除しました`,
@@ -626,6 +711,10 @@ export default function Create({ availableUsers, filters, selectedStaffIds = [],
                                     }
                                 }}
                                 onClick={() => document.getElementById('file-input').click()}
+                                onDragOver={handleDragOver}
+                                onDragEnter={handleDragEnter}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
                             >
                                 <CloudUploadIcon sx={{ fontSize: 48, color: '#1976d2', mb: 1 }} />
                                 <Typography variant="h6" sx={{ color: '#1976d2', fontWeight: 500 }}>
