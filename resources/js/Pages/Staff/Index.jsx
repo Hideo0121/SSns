@@ -11,6 +11,16 @@ export default function Index({ staff, filters }) {
     const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
     const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', message: '', onConfirm: null });
     const [selectedStaff, setSelectedStaff] = useState([]);
+    const getRoleColor = (role) => {
+        switch (role) {
+            case '全権管理者':
+                return { background: '#d32f2f', color: '#ffffff' }; // MUI error color (赤背景・白抜き)
+            case '一般管理者':
+                return { background: '#ed6c02', color: '#ffffff' }; // MUI warning color (オレンジ背景・白抜き)
+            default:
+                return { background: '#0288d1', color: '#ffffff' }; // MUI info color (青背景・白抜き)
+        }
+    };
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -33,7 +43,7 @@ export default function Index({ staff, filters }) {
     };
 
     const confirmDelete = (staffId) => {
-        router.delete(route('staff.destroy', staffId), {
+        router.delete(`/staff/${staffId}`, {
             onSuccess: () => {
                 setToast({
                     open: true,
@@ -83,7 +93,9 @@ export default function Index({ staff, filters }) {
         
         // 選択されたスタッフIDを含めてメール作成画面へ遷移
         const selectedStaffIds = selectedStaff.join(',');
-        router.get(route('mail.create', { staff_ids: selectedStaffIds }));
+        
+        // 実際のメール作成画面へ遷移
+        router.get(`/mail/create?staff_ids=${selectedStaffIds}`);
     };
 
     return (
@@ -156,8 +168,9 @@ export default function Index({ staff, filters }) {
                                     }}
                                 >
                                     <option value="">すべて</option>
-                                    <option value="admin">管理者</option>
-                                    <option value="staff">一般</option>
+                                    <option value="全権管理者">全権管理者</option>
+                                    <option value="一般管理者">一般管理者</option>
+                                    <option value="スタッフ">スタッフ</option>
                                 </select>
                             </div>
                             
@@ -214,7 +227,7 @@ export default function Index({ staff, filters }) {
                         
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <Link
-                                href={route('staff.create')}
+                                href="/staff/create"
                                 style={{
                                     background: '#4caf50',
                                     color: 'white',
@@ -230,7 +243,7 @@ export default function Index({ staff, filters }) {
                                 ➕ 新規登録
                             </Link>
                             <Link
-                                href={route('threads.index')}
+                                href="/threads"
                                 style={{
                                     background: '#2196f3',
                                     color: 'white',
@@ -325,19 +338,18 @@ export default function Index({ staff, filters }) {
                                         <td style={{ padding: '16px', color: '#666' }}>{member.email}</td>
                                         <td style={{ padding: '16px' }}>
                                             <span style={{
-                                                background: member.role === 'admin' ? '#e8f5e8' : '#f3f4f6',
-                                                color: member.role === 'admin' ? '#2e7d32' : '#374151',
+                                                ...getRoleColor(member.role),
                                                 padding: '4px 8px',
                                                 borderRadius: '12px',
                                                 fontSize: '12px',
                                                 fontWeight: '500'
                                             }}>
-                                                {member.role === 'admin' ? '管理者' : '一般'}
+                                                {member.role}
                                             </span>
                                         </td>
                                         <td style={{ padding: '16px', textAlign: 'center' }}>
                                             <Link
-                                                href={route('staff.show', member.id)}
+                                                href={`/staff/${member.id}`}
                                                 style={{
                                                     background: '#1976d2',
                                                     color: 'white',
@@ -351,7 +363,7 @@ export default function Index({ staff, filters }) {
                                                 詳細
                                             </Link>
                                             <Link
-                                                href={route('staff.edit', member.id)}
+                                                href={`/staff/${member.id}/edit`}
                                                 style={{
                                                     background: '#666',
                                                     color: 'white',

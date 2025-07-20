@@ -35,13 +35,32 @@ class MailController extends Controller
      */
     public function create(Request $request)
     {
-        $filters = $request->only(['role', 'search']);
-        $availableUsers = $this->mailService->getAvailableUsers($filters);
+        try {
+            $filters = $request->only(['role', 'search']);
+            $availableUsers = $this->mailService->getAvailableUsers($filters);
+            
+            // 選択されたスタッフIDsを取得
+            $staffIds = [];
+            if ($request->has('staff_ids')) {
+                $staffIds = explode(',', $request->get('staff_ids'));
+                $staffIds = array_filter($staffIds); // 空の値を除去
+            }
 
-        return Inertia::render('Mail/Create', [
-            'availableUsers' => $availableUsers,
-            'filters' => $filters
-        ]);
+            return Inertia::render('Mail/Create', [
+                'availableUsers' => $availableUsers,
+                'filters' => $filters,
+                'selectedStaffIds' => $staffIds
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Mail create error: ' . $e->getMessage());
+            
+            return Inertia::render('Mail/Create', [
+                'availableUsers' => [],
+                'filters' => [],
+                'selectedStaffIds' => [],
+                'error' => 'メール作成画面の読み込みに失敗しました。'
+            ]);
+        }
     }
 
     /**

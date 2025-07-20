@@ -18,7 +18,8 @@ import {
     Divider,
     IconButton,
     Checkbox,
-    FormControlLabel
+    FormControlLabel,
+    Alert
 } from '@mui/material';
 import {
     ArrowBack as ArrowBackIcon,
@@ -35,8 +36,8 @@ import {
     Logout as LogoutIcon
 } from '@mui/icons-material';
 
-export default function Create({ availableUsers, filters }) {
-    const { auth } = usePage().props;
+export default function Create({ availableUsers, filters, selectedStaffIds = [], debugMessage }) {
+    const { auth, flash } = usePage().props;
     const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
     const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', message: '', onConfirm: null });
     const [recipientsDialog, setRecipientsDialog] = useState({ open: false });
@@ -54,16 +55,25 @@ export default function Create({ availableUsers, filters }) {
 
     // URLパラメータからスタッフIDを取得して事前選択
     useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const staffIds = urlParams.get('staff_ids');
-        
-        if (staffIds && availableUsers) {
-            const preSelectedIds = staffIds.split(',').map(id => parseInt(id));
+        // propsから渡されたselectedStaffIdsを優先
+        if (selectedStaffIds && selectedStaffIds.length > 0 && availableUsers) {
+            const preSelectedIds = selectedStaffIds.map(id => parseInt(id));
             const preSelected = availableUsers.filter(user => preSelectedIds.includes(user.id));
             setSelectedUsers(preSelected);
             setData('target_users', preSelectedIds);
+        } else {
+            // フォールバック: URLパラメータから取得
+            const urlParams = new URLSearchParams(window.location.search);
+            const staffIds = urlParams.get('staff_ids');
+            
+            if (staffIds && availableUsers) {
+                const preSelectedIds = staffIds.split(',').map(id => parseInt(id));
+                const preSelected = availableUsers.filter(user => preSelectedIds.includes(user.id));
+                setSelectedUsers(preSelected);
+                setData('target_users', preSelectedIds);
+            }
         }
-    }, [availableUsers]);
+    }, [availableUsers, selectedStaffIds]);
 
     // 送信対象が0人の場合の初期チェック
     useEffect(() => {
@@ -86,6 +96,17 @@ export default function Create({ availableUsers, filters }) {
             }
         }
     }, [availableUsers]); // selectedUsersを依存配列から除外
+
+    // デバッグメッセージの表示
+    useEffect(() => {
+        if (debugMessage) {
+            setToast({
+                open: true,
+                message: debugMessage,
+                severity: 'info'
+            });
+        }
+    }, [debugMessage]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -309,12 +330,14 @@ export default function Create({ availableUsers, filters }) {
     );
 
     return (
-        <StaffSystemLayout title="メール送信" navigationBar={navigationBar}>
-            <div style={{ padding: '24px' }}>
-                <div style={{ 
-                    maxWidth: '1200px',
-                    margin: '0 auto'
-                }}>
+        <>
+            <Head title="メール送信" />
+            <StaffSystemLayout title="メール送信" navigationBar={navigationBar}>
+                <div style={{ padding: '24px' }}>
+                    <div style={{ 
+                        maxWidth: '1200px',
+                        margin: '0 auto'
+                    }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Box sx={{
                         width: 32,
@@ -1103,5 +1126,6 @@ export default function Create({ availableUsers, filters }) {
                 </div>
             </div>
         </StaffSystemLayout>
+        </>
     );
 }

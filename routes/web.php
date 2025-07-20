@@ -20,12 +20,26 @@ Route::get('/', function () {
     return redirect()->route('staff.index');
 });
 
+// テスト用シンプルルート（認証なし）
+Route::get('/mail/test-simple', function() {
+    return response()->json(['message' => 'Test route works!']);
+})->name('mail.test.simple');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
     Route::resource('staff', StaffController::class);
+    
+    // テスト用シンプルルート
+    Route::get('/mail/test', function() {
+        return Inertia::render('Mail/Create', [
+            'availableUsers' => [],
+            'filters' => [],
+            'selectedStaffIds' => []
+        ]);
+    })->name('mail.test');
     
     Route::resource('mail', MailController::class)->except(['edit', 'update', 'destroy']);
     Route::get('/mail/users', [MailController::class, 'users'])->name('mail.users');
