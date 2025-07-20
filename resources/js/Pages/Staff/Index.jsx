@@ -9,7 +9,7 @@ export default function Index({ staff, filters }) {
     const [search, setSearch] = useState(filters.search || '');
     const [role, setRole] = useState(filters.role || '');
     const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
-    const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', message: '', onConfirm: null });
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', message: '', severity: '', onConfirm: null });
     const [selectedStaff, setSelectedStaff] = useState([]);
     
     const getRoleColor = (role) => {
@@ -39,6 +39,7 @@ export default function Index({ staff, filters }) {
             open: true,
             title: 'スタッフ削除確認',
             message: `${staffMember.name}さんを削除してよろしいですか？\nこの操作は取り消せません。`,
+            severity: 'delete',
             onConfirm: () => confirmDelete(staffMember.id)
         });
     };
@@ -51,7 +52,7 @@ export default function Index({ staff, filters }) {
                     message: 'スタッフを削除しました',
                     severity: 'success'
                 });
-                setConfirmDialog({ open: false, title: '', message: '', onConfirm: null });
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
             },
             onError: () => {
                 setToast({
@@ -59,7 +60,7 @@ export default function Index({ staff, filters }) {
                     message: '削除に失敗しました',
                     severity: 'error'
                 });
-                setConfirmDialog({ open: false, title: '', message: '', onConfirm: null });
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
             }
         });
     };

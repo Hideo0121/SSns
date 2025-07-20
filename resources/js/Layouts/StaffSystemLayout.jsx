@@ -1,4 +1,6 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, router } from '@inertiajs/react';
+import { useState } from 'react';
+import ConfirmDialog from '@/Components/ConfirmDialog';
 
 export default function StaffSystemLayout({ 
     title, 
@@ -9,6 +11,33 @@ export default function StaffSystemLayout({
     backLabel = 'スタッフ一覧に戻る' 
 }) {
     const { auth } = usePage().props;
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+    const handleLogoutClick = (e) => {
+        e.preventDefault();
+        setShowLogoutConfirm(true);
+    };
+
+    const handleLogoutConfirm = () => {
+        setShowLogoutConfirm(false);
+        // フォームを作成してPOSTでログアウト
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = route('logout');
+        
+        // CSRFトークンを追加
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    };
 
     return (
         <>
@@ -61,10 +90,8 @@ export default function StaffSystemLayout({
                     }}>
                         <span style={{ marginRight: '8px' }}>👤</span>
                         {auth.user?.name}
-                        <Link
-                            href={route('logout')}
-                            method="post"
-                            as="button"
+                        <button
+                            onClick={handleLogoutClick}
                             style={{
                                 background: 'none',
                                 border: 'none',
@@ -75,7 +102,7 @@ export default function StaffSystemLayout({
                             }}
                         >
                             ログアウト
-                        </Link>
+                        </button>
                     </div>
                 </div>
 
@@ -84,6 +111,18 @@ export default function StaffSystemLayout({
 
                 {/* Content */}
                 {children}
+
+                {/* ログアウト確認ダイアログ */}
+                <ConfirmDialog
+                    open={showLogoutConfirm}
+                    title="ログアウト確認"
+                    message="本当にログアウトしますか？"
+                    confirmText="ログアウト"
+                    cancelText="キャンセル"
+                    severity="logout"
+                    onConfirm={handleLogoutConfirm}
+                    onCancel={() => setShowLogoutConfirm(false)}
+                />
             </div>
         </>
     );

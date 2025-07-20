@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import StaffSystemLayout from '@/Layouts/StaffSystemLayout';
 import Toast from '@/Components/Toast';
+import ConfirmDialog from '@/Components/ConfirmDialog';
 import {
     Paper,
     Box,
@@ -28,6 +29,8 @@ import {
 
 export default function Show({ staff }) {
     const { auth } = usePage().props;
+    const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', message: '', severity: '', onConfirm: null });
 
     const getRoleColor = (role) => {
         switch (role) {
@@ -89,6 +92,39 @@ export default function Show({ staff }) {
             description: 'システムにアクセス'
         }
     ];
+
+    const handleDelete = () => {
+        setConfirmDialog({
+            open: true,
+            title: 'スタッフ削除確認',
+            message: `${staff.name}さんを削除してよろしいですか？\nこの操作は取り消せません。`,
+            severity: 'delete',
+            onConfirm: () => confirmDelete()
+        });
+    };
+
+    const confirmDelete = () => {
+        router.delete(route('staff.destroy', staff.id), {
+            onSuccess: () => {
+                setToast({
+                    open: true,
+                    message: 'スタッフを削除しました',
+                    severity: 'success'
+                });
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
+                // 削除成功後、一覧画面に戻る
+                router.visit(route('staff.index'));
+            },
+            onError: () => {
+                setToast({
+                    open: true,
+                    message: '削除に失敗しました',
+                    severity: 'error'
+                });
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
+            }
+        });
+    };
 
     return (
         <>
@@ -221,6 +257,7 @@ export default function Show({ staff }) {
                             variant="outlined"
                             color="error"
                             startIcon={<DeleteIcon />}
+                            onClick={handleDelete}
                             sx={{
                                 color: '#d32f2f',
                                 borderColor: '#d32f2f',
@@ -533,6 +570,22 @@ export default function Show({ staff }) {
                     </Paper>
                 </div>
             </div>
+
+            <Toast
+                open={toast.open}
+                message={toast.message}
+                severity={toast.severity}
+                onClose={() => setToast({ ...toast, open: false })}
+            />
+
+            <ConfirmDialog
+                open={confirmDialog.open}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                severity={confirmDialog.severity}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null })}
+            />
         </>
     );
 }

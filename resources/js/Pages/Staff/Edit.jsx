@@ -2,6 +2,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import StaffSystemLayout from '@/Layouts/StaffSystemLayout';
 import Toast from '@/Components/Toast';
+import ConfirmDialog from '@/Components/ConfirmDialog';
 import {
     TextField,
     Select,
@@ -28,6 +29,7 @@ import {
 export default function Edit({ staff }) {
     const { auth } = usePage().props;
     const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', message: '', severity: '', onConfirm: null });
     
     const { data, setData, post, processing, errors, transform } = useForm({
         user_code: staff.user_code || '',
@@ -61,8 +63,18 @@ export default function Edit({ staff }) {
         _method: 'PUT',
     }));
 
-    const submit = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
+        setConfirmDialog({
+            open: true,
+            title: 'スタッフ情報更新確認',
+            message: `${data.name || staff.name}の情報を更新してよろしいですか？`,
+            severity: 'save',
+            onConfirm: () => confirmSubmit()
+        });
+    };
+
+    const confirmSubmit = () => {
         post(route('staff.update', staff.id), {
             forceFormData: true,
             onSuccess: () => {
@@ -71,6 +83,7 @@ export default function Edit({ staff }) {
                     message: 'スタッフ情報を更新しました',
                     severity: 'success'
                 });
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
             },
             onError: () => {
                 setToast({
@@ -78,6 +91,38 @@ export default function Edit({ staff }) {
                     message: '更新に失敗しました',
                     severity: 'error'
                 });
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
+            }
+        });
+    };
+
+    const handleDelete = () => {
+        setConfirmDialog({
+            open: true,
+            title: 'スタッフ削除確認',
+            message: `${staff.name}を削除してよろしいですか？\nこの操作は取り消せません。`,
+            severity: 'delete',
+            onConfirm: () => confirmDelete()
+        });
+    };
+
+    const confirmDelete = () => {
+        router.delete(route('staff.destroy', staff.id), {
+            onSuccess: () => {
+                setToast({
+                    open: true,
+                    message: 'スタッフを削除しました',
+                    severity: 'success'
+                });
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
+            },
+            onError: () => {
+                setToast({
+                    open: true,
+                    message: '削除に失敗しました',
+                    severity: 'error'
+                });
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
             }
         });
     };
@@ -214,6 +259,7 @@ export default function Edit({ staff }) {
                             variant="outlined"
                             color="error"
                             startIcon={<DeleteIcon />}
+                            onClick={handleDelete}
                             sx={{
                                 color: '#d32f2f',
                                 borderColor: '#d32f2f',
@@ -267,7 +313,7 @@ export default function Edit({ staff }) {
                         </div>
                         
                         <div style={{ padding: '32px' }}>
-                            <form id="staff-edit-form" onSubmit={submit}>
+                            <form id="staff-edit-form" onSubmit={handleSubmit}>
                                 <div style={{
                                     display: 'grid',
                                     gridTemplateColumns: window.innerWidth <= 768 ? '1fr' : '200px 1fr',
@@ -721,6 +767,16 @@ export default function Edit({ staff }) {
                 message={toast.message}
                 severity={toast.severity}
                 onClose={() => setToast({ ...toast, open: false })}
+            />
+
+            <ConfirmDialog
+                open={confirmDialog.open}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                severity={confirmDialog.severity}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null })}
+                processing={processing}
             />
         </>
     );

@@ -1,6 +1,7 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import StaffSystemLayout from '@/Layouts/StaffSystemLayout';
+import ConfirmDialog from '@/Components/ConfirmDialog';
 import {
     TextField,
     Select,
@@ -25,10 +26,28 @@ export default function Create({ categories }) {
     });
 
     const [showNewCategory, setShowNewCategory] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', message: '', severity: '', onConfirm: null });
 
-    const submit = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('threads.store'));
+        setConfirmDialog({
+            open: true,
+            title: 'トピック作成確認',
+            message: `「${data.title || '新しいトピック'}」を作成してよろしいですか？`,
+            severity: 'save',
+            onConfirm: () => confirmSubmit()
+        });
+    };
+
+    const confirmSubmit = () => {
+        post(route('threads.store'), {
+            onSuccess: () => {
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
+            },
+            onError: () => {
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
+            }
+        });
     };
 
     const navigationBar = (
@@ -101,7 +120,7 @@ export default function Create({ categories }) {
                     margin: '0 auto'
                 }}>
                     <Paper sx={{ p: 4, borderRadius: 3, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                        <form id="topic-form" onSubmit={submit}>
+                        <form id="topic-form" onSubmit={handleSubmit}>
                             <Box className="space-y-6">
                                 <TextField
                                     label="タイトル *"
@@ -205,6 +224,16 @@ export default function Create({ categories }) {
                     </Paper>
                 </div>
             </div>
+
+            <ConfirmDialog
+                open={confirmDialog.open}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                severity={confirmDialog.severity}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null })}
+                processing={processing}
+            />
         </StaffSystemLayout>
     );
 }

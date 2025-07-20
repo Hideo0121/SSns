@@ -6,9 +6,20 @@ import {
     DialogContentText,
     DialogTitle,
     Button,
+    Typography,
+    Box,
     useTheme,
     useMediaQuery
 } from '@mui/material';
+import {
+    Warning as WarningIcon,
+    Help as HelpIcon,
+    Info as InfoIcon,
+    Error as ErrorIcon,
+    ExitToApp as LogoutIcon,
+    Delete as DeleteIcon,
+    Save as SaveIcon
+} from '@mui/icons-material';
 
 export default function ConfirmDialog({
     open,
@@ -18,21 +29,47 @@ export default function ConfirmDialog({
     cancelText = 'キャンセル',
     onConfirm,
     onCancel,
-    severity = 'warning' // 'warning', 'error', 'info'
+    severity = 'warning', // 'warning', 'error', 'info', 'question', 'logout', 'delete', 'save'
+    loading = false
 }) {
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
-    const getSeverityColor = () => {
+    const getIcon = () => {
+        const iconStyle = { fontSize: 48, marginBottom: 2 };
+        
+        switch (severity) {
+            case 'warning':
+                return <WarningIcon sx={{ ...iconStyle, color: theme.palette.warning.main }} />;
+            case 'error':
+                return <ErrorIcon sx={{ ...iconStyle, color: theme.palette.error.main }} />;
+            case 'info':
+                return <InfoIcon sx={{ ...iconStyle, color: theme.palette.info.main }} />;
+            case 'question':
+                return <HelpIcon sx={{ ...iconStyle, color: theme.palette.primary.main }} />;
+            case 'logout':
+                return <LogoutIcon sx={{ ...iconStyle, color: theme.palette.warning.main }} />;
+            case 'delete':
+                return <DeleteIcon sx={{ ...iconStyle, color: theme.palette.error.main }} />;
+            case 'save':
+                return <SaveIcon sx={{ ...iconStyle, color: theme.palette.success.main }} />;
+            default:
+                return <WarningIcon sx={{ ...iconStyle, color: theme.palette.warning.main }} />;
+        }
+    };
+
+    const getConfirmButtonColor = () => {
         switch (severity) {
             case 'error':
-                return theme.palette.error.main;
+            case 'delete':
+                return 'error';
             case 'warning':
-                return theme.palette.warning.main;
-            case 'info':
-                return theme.palette.info.main;
+            case 'logout':
+                return 'warning';
+            case 'save':
+                return 'success';
             default:
-                return theme.palette.warning.main;
+                return 'primary';
         }
     };
 
@@ -61,7 +98,6 @@ export default function ConfirmDialog({
             fullScreen={fullScreen}
             maxWidth="sm"
             fullWidth
-            onKeyDown={handleKeyDown}
             PaperProps={{
                 sx: {
                     borderRadius: fullScreen ? 0 : 2,
@@ -76,16 +112,20 @@ export default function ConfirmDialog({
         >
             <DialogTitle 
                 sx={{
-                    borderBottom: `2px solid ${getSeverityColor()}`,
-                    backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                    fontWeight: 600,
-                    fontSize: '18px',
-                    color: getSeverityColor()
+                    textAlign: 'center',
+                    paddingBottom: 1,
+                    paddingTop: 3
                 }}
             >
-                {title}
+                <Box display="flex" flexDirection="column" alignItems="center">
+                    {getIcon()}
+                    <Typography variant="h6" component="div" sx={{ fontWeight: 600, marginTop: 1 }}>
+                        {title}
+                    </Typography>
+                </Box>
             </DialogTitle>
-            <DialogContent sx={{ padding: '24px', minHeight: '60px' }}>
+            
+            <DialogContent sx={{ textAlign: 'center', paddingTop: 1, paddingBottom: 2 }}>
                 <DialogContentText
                     sx={{
                         fontSize: '16px',
@@ -97,42 +137,39 @@ export default function ConfirmDialog({
                     {message}
                 </DialogContentText>
             </DialogContent>
+            
             <DialogActions 
                 sx={{ 
+                    justifyContent: 'center',
                     padding: '16px 24px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                    borderTop: '1px solid rgba(0, 0, 0, 0.12)'
+                    gap: 2
                 }}
             >
                 <Button
                     onClick={handleCancel}
                     variant="outlined"
+                    size="large"
+                    disabled={loading}
                     sx={{
-                        minWidth: '100px',
-                        marginRight: '12px',
-                        borderColor: theme.palette.grey[300],
-                        color: theme.palette.text.secondary,
-                        '&:hover': {
-                            borderColor: theme.palette.grey[400],
-                            backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                        }
+                        minWidth: 100,
+                        fontWeight: 500
                     }}
                 >
                     {cancelText}
                 </Button>
                 <Button
                     onClick={handleConfirm}
+                    color={getConfirmButtonColor()}
                     variant="contained"
+                    size="large"
+                    disabled={loading}
                     sx={{
-                        minWidth: '100px',
-                        backgroundColor: getSeverityColor(),
-                        '&:hover': {
-                            backgroundColor: theme.palette[severity]?.dark || getSeverityColor(),
-                        }
+                        minWidth: 100,
+                        fontWeight: 500
                     }}
                     autoFocus
                 >
-                    {confirmText}
+                    {loading ? '実行中...' : confirmText}
                 </Button>
             </DialogActions>
         </Dialog>

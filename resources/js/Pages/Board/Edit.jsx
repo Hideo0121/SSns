@@ -1,6 +1,7 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import StaffSystemLayout from '@/Layouts/StaffSystemLayout';
+import ConfirmDialog from '@/Components/ConfirmDialog';
 import {
     TextField,
     Select,
@@ -18,6 +19,7 @@ import { Save as SaveIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-materia
 export default function Edit({ thread, categories }) {
     const { auth } = usePage().props;
     const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', message: '', severity: '', onConfirm: null });
     
     const { data, setData, put, processing, errors } = useForm({
         title: thread.title || '',
@@ -26,9 +28,26 @@ export default function Edit({ thread, categories }) {
         new_category: ''
     });
 
-    const submit = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        put(route('threads.update', thread.id));
+        setConfirmDialog({
+            open: true,
+            title: 'トピック更新確認',
+            message: `「${data.title || thread.title}」を更新してよろしいですか？`,
+            severity: 'save',
+            onConfirm: () => confirmSubmit()
+        });
+    };
+
+    const confirmSubmit = () => {
+        put(route('threads.update', thread.id), {
+            onSuccess: () => {
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
+            },
+            onError: () => {
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
+            }
+        });
     };
 
     const handleCategoryChange = (value) => {
@@ -183,7 +202,7 @@ export default function Edit({ thread, categories }) {
                         </div>
                         
                         <div style={{ padding: '32px' }}>
-                            <form onSubmit={submit}>
+                            <form onSubmit={handleSubmit}>
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                                     <TextField
                                         label="タイトル *"
@@ -289,6 +308,16 @@ export default function Edit({ thread, categories }) {
                     </Paper>
                 </div>
             </div>
+
+            <ConfirmDialog
+                open={confirmDialog.open}
+                title={confirmDialog.title}
+                message={confirmDialog.message}
+                severity={confirmDialog.severity}
+                onConfirm={confirmDialog.onConfirm}
+                onCancel={() => setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null })}
+                processing={processing}
+            />
         </>
     );
 }

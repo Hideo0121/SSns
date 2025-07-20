@@ -1,6 +1,7 @@
 import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import StaffSystemLayout from '@/Layouts/StaffSystemLayout';
+import ConfirmDialog from '@/Components/ConfirmDialog';
 import {
     Paper,
     Box,
@@ -155,8 +156,7 @@ export default function Show({ thread, isFavorited, flash, favoritesCount: serve
     const [favorited, setFavorited] = useState(isFavorited);
     const [favoritesCount, setFavoritesCount] = useState(serverFavoritesCount || thread.favorites?.length || 0);
     const [editingComment, setEditingComment] = useState(null);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [commentToDelete, setCommentToDelete] = useState(null);
+    const [confirmDialog, setConfirmDialog] = useState({ open: false, title: '', message: '', severity: '', onConfirm: null });
 
     // プロパティが変更された時に状態を更新
     useEffect(() => {
@@ -210,13 +210,25 @@ export default function Show({ thread, isFavorited, flash, favoritesCount: serve
 
     const handleCommentSubmit = (e) => {
         e.preventDefault();
+        setConfirmDialog({
+            open: true,
+            title: 'コメント投稿確認',
+            message: 'このコメントを投稿してよろしいですか？',
+            severity: 'save',
+            onConfirm: () => confirmCommentSubmit()
+        });
+    };
+
+    const confirmCommentSubmit = () => {
         post(route('comments.store', thread.id), {
             onSuccess: () => {
                 reset();
                 router.reload();
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
             },
             onError: (errors) => {
                 console.error('コメント投稿エラー:', errors);
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
             }
         });
     };
@@ -227,37 +239,50 @@ export default function Show({ thread, isFavorited, flash, favoritesCount: serve
     };
 
     const handleUpdateComment = (commentId) => {
+        setConfirmDialog({
+            open: true,
+            title: 'コメント更新確認',
+            message: 'このコメントを更新してよろしいですか？',
+            severity: 'save',
+            onConfirm: () => confirmUpdateComment(commentId)
+        });
+    };
+
+    const confirmUpdateComment = (commentId) => {
         patch(route('comments.update', commentId), {
             onSuccess: () => {
                 setEditingComment(null);
                 router.reload();
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
             },
             onError: (errors) => {
                 console.error('コメント更新エラー:', errors);
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
             }
         });
     };
 
     const handleDeleteComment = (comment) => {
-        setCommentToDelete(comment);
-        setDeleteDialogOpen(true);
+        setConfirmDialog({
+            open: true,
+            title: 'コメント削除確認',
+            message: `このコメントを削除してよろしいですか？\nこの操作は取り消せません。`,
+            severity: 'delete',
+            onConfirm: () => confirmDeleteComment(comment)
+        });
     };
 
-    const confirmDeleteComment = () => {
-        if (commentToDelete) {
-            router.delete(route('comments.destroy', commentToDelete.id), {
-                onSuccess: () => {
-                    setDeleteDialogOpen(false);
-                    setCommentToDelete(null);
-                    router.reload();
-                },
-                onError: (errors) => {
-                    console.error('コメント削除エラー:', errors);
-                    setDeleteDialogOpen(false);
-                    setCommentToDelete(null);
-                }
-            });
-        }
+    const confirmDeleteComment = (comment) => {
+        router.delete(route('comments.destroy', comment.id), {
+            onSuccess: () => {
+                router.reload();
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
+            },
+            onError: (errors) => {
+                console.error('コメント削除エラー:', errors);
+                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
+            }
+        });
     };
 
     const formatDate = (dateString) => {
@@ -623,23 +648,15 @@ export default function Show({ thread, isFavorited, flash, favoritesCount: serve
                         </Paper>
                     )}
 
-                    {/* Delete Confirmation Dialog */}
-                    <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-                        <DialogTitle>コメント削除確認</DialogTitle>
-                        <DialogContent>
-                            <Typography>
-                                このコメントを削除してもよろしいですか？この操作は元に戻せません。
-                            </Typography>
-                        </DialogContent>
-                        <DialogActions>
-                            <Button onClick={() => setDeleteDialogOpen(false)} sx={{ textTransform: 'none' }}>
-                                キャンセル
-                            </Button>
-                            <Button onClick={confirmDeleteComment} color="error" sx={{ textTransform: 'none' }}>
-                                削除
-                            </Button>
-                        </DialogActions>
-                    </Dialog>
+                    <ConfirmDialog
+                        open={confirmDialog.open}
+                        title={confirmDialog.title}
+                        message={confirmDialog.message}
+                        severity={confirmDialog.severity}
+                        onConfirm={confirmDialog.onConfirm}
+                        onCancel={() => setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null })}
+                        processing={processing || editProcessing}
+                    />
                 </div>
             </div>
         </>

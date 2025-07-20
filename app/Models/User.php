@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use App\Traits\Auditable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, Auditable;
+    use HasApiTokens, HasFactory, Notifiable, Auditable;
 
     /**
      * Get the auditable attributes (exclude sensitive data)
