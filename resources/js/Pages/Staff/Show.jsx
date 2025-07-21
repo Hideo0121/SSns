@@ -323,8 +323,8 @@ export default function Show({ staff }) {
                                         width: '120px',
                                         height: '120px',
                                         borderRadius: '50%',
-                                        background: staff.profile_image ? 'none' : '#1976d2',
-                                        backgroundImage: staff.profile_image ? `url(${staff.profile_image})` : 'none',
+                                        background: staff.avatar_photo ? 'none' : '#1976d2',
+                                        backgroundImage: staff.avatar_photo ? `url(/storage/${staff.avatar_photo})` : 'none',
                                         backgroundSize: 'cover',
                                         backgroundPosition: 'center',
                                         color: 'white',
@@ -336,7 +336,7 @@ export default function Show({ staff }) {
                                         fontWeight: 'bold',
                                         border: '4px solid #1976d2'
                                     }}>
-                                        {!staff.profile_image && (staff.name ? staff.name.charAt(0) : '👤')}
+                                        {!staff.avatar_photo && (staff.name ? staff.name.charAt(0) : '👤')}
                                     </div>
                                 </div>
 

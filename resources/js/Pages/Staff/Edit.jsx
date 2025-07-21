@@ -1,4 +1,4 @@
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import { useState } from 'react';
 import StaffSystemLayout from '@/Layouts/StaffSystemLayout';
 import Toast from '@/Components/Toast';
@@ -75,25 +75,79 @@ export default function Edit({ staff }) {
     };
 
     const confirmSubmit = () => {
-        post(route('staff.update', staff.id), {
-            forceFormData: true,
-            onSuccess: () => {
+        // Send with explicit CSRF handling
+        const formData = new FormData();
+        
+        // Add all form data
+        Object.keys(data).forEach(key => {
+            if (data[key] !== null && data[key] !== undefined) {
+                if (key === 'profile_image' && data[key] instanceof File) {
+                    formData.append(key, data[key]);
+                } else if (key !== 'profile_image') {
+                    formData.append(key, data[key]);
+                }
+            }
+        });
+        
+        // Add method override
+        formData.append('_method', 'PUT');
+        
+        // Add CSRF token explicitly
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) {
+            formData.append('_token', csrfToken);
+        }
+
+        // Use router.post with custom retry logic
+        const submitWithRetry = (retries = 1) => {
+            window.axios.post(route('staff.update', staff.id), formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).then(response => {
                 setToast({
                     open: true,
                     message: 'スタッフ情報を更新しました',
                     severity: 'success'
                 });
                 setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
-            },
-            onError: () => {
-                setToast({
-                    open: true,
-                    message: '更新に失敗しました',
-                    severity: 'error'
-                });
-                setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
-            }
-        });
+                // Navigate back to staff list
+                setTimeout(() => {
+                    router.visit(route('staff.index'));
+                }, 1500);
+            }).catch(error => {
+                if (error.response?.status === 419 && retries > 0) {
+                    // 419 error detected, refresh and retry
+                    console.warn('419 error detected, refreshing CSRF token and retrying...');
+                    fetch('/sanctum/csrf-cookie', {
+                        method: 'GET',
+                        credentials: 'same-origin'
+                    }).then(() => {
+                        // Get new token and retry
+                        const newToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                        if (newToken) {
+                            formData.set('_token', newToken);
+                            window.axios.defaults.headers.common['X-CSRF-TOKEN'] = newToken;
+                        }
+                        submitWithRetry(retries - 1);
+                    }).catch(() => {
+                        // If CSRF refresh fails, reload page
+                        window.location.reload();
+                    });
+                } else {
+                    setToast({
+                        open: true,
+                        message: error.response?.data?.message || '更新に失敗しました',
+                        severity: 'error'
+                    });
+                    setConfirmDialog({ open: false, title: '', message: '', severity: '', onConfirm: null });
+                }
+            });
+        };
+
+        submitWithRetry();
     };
 
     const handleDelete = () => {
@@ -328,7 +382,7 @@ export default function Edit({ staff }) {
                                             border: (data.profile_image || staff.avatar_photo) ? '4px solid #1976d2' : '4px dashed #1976d2',
                                             borderRadius: '50%',
                                             background: data.profile_image ? `url(${URL.createObjectURL(data.profile_image)}) center/cover` : 
-                                                       staff.avatar_photo ? `url(/avatars/${staff.avatar_photo.split('/').pop()}) center/cover` : '#f3f7ff',
+                                                       staff.avatar_photo ? `url(/storage/${staff.avatar_photo}) center/cover` : '#f3f7ff',
                                             color: '#1976d2',
                                             display: 'flex',
                                             alignItems: 'center',
