@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('subject');
             $table->text('body');
             $table->timestamp('sent_at')->nullable();
-            $table->enum('status', ['draft', 'sending', 'sent', 'failed'])->default('draft');
+            $table->enum('status', ['draft', 'sending', 'sent', 'failed', 'partial_failed'])->default('draft');
             $table->timestamps();
         });
     }
